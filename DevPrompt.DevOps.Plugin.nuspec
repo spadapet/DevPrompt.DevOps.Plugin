@@ -1,0 +1,18 @@
+﻿<?xml version="1.0"?>
+<package >
+    <metadata>
+        <id>DevPrompt.DevOps.Plugin</id>
+        <version>1.0.1</version>
+        <authors>Peter Spada</authors>
+        <owners>Peter Spada</owners>
+        <projectUrl>https://github.com/spadapet/DevPrompt.DevOps.Plugin</projectUrl>
+        <license type="expression">Apache-2.0</license>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>DevOps Plugin for DevPrompt</description>
+        <copyright>Copyright 2019</copyright>
+        <tags>DevPrompt DevPrompt.Plugin</tags>
+    </metadata>
+    <files>
+        <file src="DevOps.Plugin\bin\Release\**" target="tools\net40" />
+    </files>
+</package>
