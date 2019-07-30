@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace DevOps.UI.ViewModels
+namespace DevOps.Plugin.UI.ViewModels
 {
     internal class PullRequestVM : PropertyNotifier, IPullRequestVM, IAvatarSite
     {
@@ -25,34 +25,43 @@ namespace DevOps.UI.ViewModels
             this.window = window;
         }
 
+        public bool IsDraft => this.pr.IsDraft == true;
+        public string Id => this.pr.PullRequestId.ToString();
+        public string Title => this.pr.Title;
+        public string Author => this.pr.CreatedBy?.DisplayName ?? string.Empty;
+        public string Status => this.pr.Status.ToString();
+        public string SourceRefName => this.pr.SourceRefName;
+        public string TargetRefName => this.pr.TargetRefName;
+        public DateTime CreationDate => this.pr.CreationDate;
+
         public GitPullRequest GitPullRequest
         {
-            get
-            {
-                return this.pr;
-            }
-
+            get => this.pr;
             set
             {
-                this.SetPropertyValue(ref this.pr, value, name: null);
+                if (this.SetPropertyValue(ref this.pr, value, name: null))
+                {
+                    this.OnPropertiesChanged();
+                }
             }
         }
 
-        public Uri WebLink
+        public Uri BaseAddress
         {
-            get
+            get => this.baseUri;
+            set
             {
-                return new Uri($@"{this.baseUri}{this.pr.Repository.ProjectReference.Name}/_git/{this.pr.Repository.Name}/pullrequest/{this.pr.PullRequestId}?_a=overview");
+                if (this.SetPropertyValue(ref this.baseUri, value))
+                {
+                    this.OnPropertyChanged(nameof(this.WebLink));
+                    this.OnPropertyChanged(nameof(this.CodeFlowLink));
+                }
             }
         }
 
-        public Uri CodeFlowLink
-        {
-            get
-            {
-                return new Uri($@"codeflow://open/?server={Uri.EscapeUriString(this.baseUri.ToString())}&project={this.pr.Repository.ProjectReference.Name}&repo={this.pr.Repository.Name}&pullRequest={this.pr.PullRequestId}&alert=true");
-            }
-        }
+        public Uri WebLink => new Uri($@"{this.baseUri}{this.pr.Repository.ProjectReference.Name}/_git/{this.pr.Repository.Name}/pullrequest/{this.pr.PullRequestId}?_a=overview");
+
+        public Uri CodeFlowLink => new Uri($@"codeflow://open/?server={Uri.EscapeUriString(this.baseUri.ToString())}&project={this.pr.Repository.ProjectReference.Name}&repo={this.pr.Repository.Name}&pullRequest={this.pr.PullRequestId}&alert=true");
 
         public Uri AvatarLink
         {
@@ -92,82 +101,12 @@ namespace DevOps.UI.ViewModels
             }
         }
 
-        public string Id
+        public ICommand WebLinkCommand => new DelegateCommand(p =>
         {
-            get
+            if (p is Uri uri)
             {
-                return this.pr.PullRequestId.ToString();
+                this.window.RunExternalProcess(uri.ToString());
             }
-        }
-
-        public string Title
-        {
-            get
-            {
-                return this.pr.Title;
-            }
-        }
-
-        public string Author
-        {
-            get
-            {
-                return this.pr.CreatedBy?.DisplayName ?? string.Empty;
-            }
-        }
-
-        public DateTime CreationDate
-        {
-            get
-            {
-                return this.pr.CreationDate;
-            }
-        }
-
-        public bool IsDraft
-        {
-            get
-            {
-                return this.pr.IsDraft == true;
-            }
-        }
-
-        public string Status
-        {
-            get
-            {
-                return this.pr.Status.ToString();
-            }
-        }
-
-        public string SourceRefName
-        {
-            get
-            {
-                return this.pr.SourceRefName;
-            }
-        }
-
-        public string TargetRefName
-        {
-            get
-            {
-                return this.pr.TargetRefName;
-            }
-        }
-
-        public ICommand WebLinkCommand
-        {
-            get
-            {
-                return new DelegateCommand(p =>
-                {
-                    if (p is Uri uri)
-                    {
-                        this.window.RunExternalProcess(uri.ToString());
-                    }
-                });
-            }
-        }
+        });
     }
 }

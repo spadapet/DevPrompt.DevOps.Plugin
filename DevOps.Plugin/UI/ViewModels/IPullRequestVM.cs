@@ -2,7 +2,7 @@
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace DevOps.UI.ViewModels
+namespace DevOps.Plugin.UI.ViewModels
 {
     internal interface IPullRequestVM
     {

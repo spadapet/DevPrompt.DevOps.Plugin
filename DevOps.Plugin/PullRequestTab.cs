@@ -1,4 +1,4 @@
-﻿using DevOps.UI;
+﻿using DevOps.Plugin.UI;
 using DevPrompt.Api;
 using System;
 using System.Runtime.InteropServices;
@@ -6,14 +6,13 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace DevOps
+namespace DevOps.Plugin
 {
     [Guid("527dd4ee-5150-4b3b-84d0-c81e548b7830")]
     internal sealed class PullRequestTab : PropertyNotifier, ITab, IDisposable
     {
         public IWindow Window { get; }
         public IWorkspace Workspace { get; }
-
         private UIElement viewElement;
 
         public PullRequestTab(IWindow window, IWorkspace workspace)
@@ -27,37 +26,10 @@ namespace DevOps
             this.ViewElement = null;
         }
 
-        public Guid Id
-        {
-            get
-            {
-                return this.GetType().GUID;
-            }
-        }
-
-        public string Name
-        {
-            get
-            {
-                return "Pull Requests";
-            }
-        }
-
-        public string Tooltip
-        {
-            get
-            {
-                return this.Title;
-            }
-        }
-
-        public string Title
-        {
-            get
-            {
-                return this.Name;
-            }
-        }
+        public Guid Id => this.GetType().GUID;
+        public string Name => Resources.PullRequestsTabName;
+        public string Tooltip => string.Empty;
+        public string Title => this.Name;
 
         public UIElement ViewElement
         {
@@ -90,7 +62,7 @@ namespace DevOps
         {
             if (this.viewElement != null)
             {
-                Action action = new Action(() => this.viewElement.MoveFocus(new TraversalRequest(FocusNavigationDirection.First)));
+                Action action = () => this.viewElement.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
                 this.viewElement.Dispatcher.BeginInvoke(action, DispatcherPriority.Normal);
             }
         }
@@ -108,11 +80,14 @@ namespace DevOps
             return true;
         }
 
+        // Doesn't save state (yet)
+        ITabSnapshot ITab.Snapshot => null;
+
+        // Hide some unrelated context menu items
         ICommand ITab.CloneCommand => null;
         ICommand ITab.DetachCommand => null;
         ICommand ITab.DefaultsCommand => null;
         ICommand ITab.PropertiesCommand => null;
         ICommand ITab.SetTabNameCommand => null;
-        ITabSnapshot ITab.Snapshot => null; // doesn't save state (yet)
     }
 }

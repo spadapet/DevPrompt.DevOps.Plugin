@@ -2,7 +2,8 @@
 <package >
     <metadata>
         <id>DevPrompt.DevOps.Plugin</id>
-        <version>1.0.1</version>
+        <title>Azure DevOps Tools</title>
+        <version>1.0.3</version>
         <authors>Peter Spada</authors>
         <owners>Peter Spada</owners>
         <projectUrl>https://github.com/spadapet/DevPrompt.DevOps.Plugin</projectUrl>

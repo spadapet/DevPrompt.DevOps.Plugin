@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace DevOps.Utility
+namespace DevOps.Plugin.Utility
 {
     internal sealed class NegateBoolConverter : IValueConverter
     {

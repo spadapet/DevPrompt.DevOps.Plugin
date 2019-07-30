@@ -1,90 +1,96 @@
 ﻿using DevOps.Avatars;
+using DevOps.Plugin.Utility;
 using DevPrompt.Api;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
+using Microsoft.VisualStudio.Services.WebApi;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace DevOps.UI.ViewModels
+namespace DevOps.Plugin.UI.ViewModels
 {
     internal class PullRequestPageVM : PropertyNotifier, IAvatarProvider, IDisposable
     {
         public PullRequestTab Tab { get; }
-        private CancellationTokenSource cancellationTokenSource;
-        private readonly GitHttpClient gitClient;
-        private readonly HttpClient avatarHttpClient;
-        private List<TeamProject> projects;
-        private Task activeTask;
+
+        private ObservableCollection<AccountVM> accounts;
+        private ObservableCollection<ProjectReferenceVM> projects;
         private ObservableCollection<PullRequestVM> pullRequests;
-        private Dictionary<Uri, List<IAvatarSite>> pendingAvatars;
+        private AzureDevOpsClient accountClient;
+        private AccountVM currentAccount;
+        private ProjectReferenceVM currentProject;
+        private AzureDevOpsUserContext devopsUserContext;
+
+        // Avatars
         private Dictionary<Uri, ImageSource> avatars;
+        private Dictionary<Uri, List<IAvatarSite>> pendingAvatars;
+        private HttpClient avatarHttpClient;
+
+        private CancellationTokenSource cancellationTokenSource;
         private bool disposed;
 
-        public PullRequestPageVM(
-            PullRequestTab tab,
-            GitHttpClient gitClient,
-            HttpClient avatarHttpClient,
-            IEnumerable<TeamProject> projects)
+        public PullRequestPageVM(PullRequestTab tab, AzureDevOpsUserContext userContext)
         {
-            this.cancellationTokenSource = new CancellationTokenSource();
+            this.devopsUserContext = userContext;
             this.Tab = tab;
-            this.gitClient = gitClient;
-            this.avatarHttpClient = avatarHttpClient;
-            this.projects = projects.ToList();
+            this.cancellationTokenSource = new CancellationTokenSource();
+            this.accounts = new ObservableCollection<AccountVM>(userContext.Accounts.OrderBy(a => a.AccountName).Select(a => new AccountVM(a)));
+            this.projects = new ObservableCollection<ProjectReferenceVM>();
             this.pullRequests = new ObservableCollection<PullRequestVM>();
-            this.pendingAvatars = new Dictionary<Uri, List<IAvatarSite>>();
+            this.currentAccount = new AccountVM(null);
+            this.currentProject = new ProjectReferenceVM(null);
+
             this.avatars = new Dictionary<Uri, ImageSource>();
+            this.pendingAvatars = new Dictionary<Uri, List<IAvatarSite>>();
+            this.avatarHttpClient = new HttpClient();
+            this.avatarHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userContext.AuthenticationResult.AccessToken);
+            this.avatarHttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/png"));
         }
 
         public void Dispose()
         {
             this.disposed = true;
 
-            this.Cancel(disposing: true);
+            this.Cancel();
             this.avatarHttpClient.Dispose();
         }
 
-        public IList<PullRequestVM> PullRequests
-        {
-            get
-            {
-                return this.pullRequests;
-            }
-        }
+        public IList<AccountVM> Accounts => this.accounts;
+        public IList<ProjectReferenceVM> Projects => this.projects;
+        public bool HasProjects => this.CurrentAccount?.Account != null && this.Projects.Count > 0;
+        public IList<PullRequestVM> PullRequests => this.pullRequests;
+        public IWindow Window => this.Tab.Window;
 
-        public IWindow Window
+        public void OnLoaded()
         {
-            get
-            {
-                return this.Tab.Window;
-            }
-        }
-
-        public async Task OnLoaded()
-        {
-            await this.Refresh();
+            this.Refresh();
         }
 
         public void OnUnloaded()
         {
             if (!this.disposed)
             {
-                this.Cancel(disposing: false);
+                this.Cancel();
             }
         }
 
-        private void Cancel(bool disposing)
+        private void Cancel()
         {
             this.cancellationTokenSource.Cancel();
             this.cancellationTokenSource.Dispose();
+
+            this.accountClient?.Dispose();
+            this.accountClient = null;
+
+            this.avatarHttpClient.CancelPendingRequests();
 
             if (!this.disposed)
             {
@@ -92,32 +98,83 @@ namespace DevOps.UI.ViewModels
             }
         }
 
-        public async Task Refresh()
+        public AccountVM CurrentAccount
         {
-            if (this.activeTask == null)
+            get => this.currentAccount;
+            set
             {
-                using (this.Window.BeginLoading())
+                if (this.SetPropertyValue(ref this.currentAccount, value))
                 {
-                    try
-                    {
-                        this.activeTask = this.InternalRefresh();
-                        await this.activeTask;
-                    }
-                    catch (Exception ex)
-                    {
-                        this.Window.SetError(ex);
-                    }
-                    finally
-                    {
-                        this.activeTask = null;
-                    }
+                    this.OnPropertyChanged(nameof(this.HasProjects));
+                    this.UpdateProjects(this.currentAccount);
                 }
             }
         }
 
-        private async Task InternalRefresh()
+        public ProjectReferenceVM CurrentProject
         {
-            // Clear failed avatar downloads
+            get => this.currentProject;
+            set
+            {
+                if (this.SetPropertyValue(ref this.currentProject, value))
+                {
+                    this.UpdatePullRequests(this.currentProject?.Project);
+                }
+            }
+        }
+
+        private void Refresh()
+        {
+            if (this.currentProject != null)
+            {
+                this.UpdatePullRequests(this.currentProject.Project);
+            }
+        }
+
+        private async void UpdateProjects(AccountVM account)
+        {
+            this.CurrentProject = null;
+
+            this.accountClient = new AzureDevOpsClient(account.Account.AccountUri, this.devopsUserContext);
+
+            using (this.Window.ProgressBar.Begin(this.cancellationTokenSource.Cancel, "Getting projects"))
+            {
+                IPagedList<TeamProjectReference> projects = await this.accountClient.GetProjectsAsync(this.cancellationTokenSource.Token);
+
+                this.projects.Clear();
+
+                foreach (TeamProjectReference project in projects.OrderBy(p => p.Name))
+                {
+                    this.projects.Add(new ProjectReferenceVM(project));
+                }
+
+                this.OnPropertyChanged(nameof(this.HasProjects));
+            }
+        }
+
+        private async void UpdatePullRequests(TeamProjectReference project)
+        {
+            if (project == null)
+            {
+                this.pullRequests.Clear();
+            }
+            else if (this.accountClient != null)
+            {
+                using (this.Window.ProgressBar.Begin(this.cancellationTokenSource.Cancel, "Getting pull requests"))
+                {
+                    GitPullRequestSearchCriteria search = new GitPullRequestSearchCriteria()
+                    {
+                        Status = PullRequestStatus.Active,
+                    };
+
+                    Tuple<Uri, List<GitPullRequest>> pullRequests = await this.accountClient.GetPullRequests(project.Name, search, this.cancellationTokenSource.Token);
+                    this.UpdatePullRequests(project, pullRequests.Item1, pullRequests.Item2);
+                }
+            }
+        }
+
+        private void ClearFailedAvatarDownloads()
+        {
             foreach (KeyValuePair<Uri, ImageSource> pair in this.avatars.ToArray())
             {
                 if (pair.Value == null)
@@ -125,35 +182,22 @@ namespace DevOps.UI.ViewModels
                     this.avatars.Remove(pair.Key);
                 }
             }
-
-            GitPullRequestSearchCriteria searchCriteria = new GitPullRequestSearchCriteria()
-            {
-                Status = PullRequestStatus.Active,
-            };
-
-            List<GitPullRequest> newPullRequests = new List<GitPullRequest>();
-
-            foreach (TeamProject project in this.projects)
-            {
-                newPullRequests.AddRange(await this.gitClient.GetPullRequestsByProjectAsync(project.Id, searchCriteria, cancellationToken: this.cancellationTokenSource.Token));
-            }
-
-            this.UpdatePullRequests(newPullRequests);
         }
 
-        private void UpdatePullRequests(IReadOnlyList<GitPullRequest> newPullRequests)
+        private void UpdatePullRequests(TeamProjectReference project, Uri baseAddress, IReadOnlyList<GitPullRequest> newPullRequests)
         {
-            Uri baseUri = this.gitClient.BaseAddress;
+            this.ClearFailedAvatarDownloads();
 
             for (int i = 0; i < newPullRequests.Count; i++)
             {
                 if (this.pullRequests.Count > i)
                 {
+                    this.pullRequests[i].BaseAddress = baseAddress;
                     this.pullRequests[i].GitPullRequest = newPullRequests[i];
                 }
                 else
                 {
-                    this.pullRequests.Add(new PullRequestVM(baseUri, newPullRequests[i], this, this.Window));
+                    this.pullRequests.Add(new PullRequestVM(baseAddress, newPullRequests[i], this, this.Window));
                 }
             }
 

@@ -1,7 +1,7 @@
-﻿using DevOps.UI.ViewModels;
+﻿using DevOps.Plugin.UI.ViewModels;
 using System.Collections.Generic;
 
-namespace DevOps.UI.DesignerViewModels
+namespace DevOps.Plugin.UI.DesignerViewModels
 {
     /// <summary>
     /// Sample data for the XAML designer

@@ -1,9 +1,9 @@
-﻿using DevOps.UI.ViewModels;
+﻿using DevOps.Plugin.UI.ViewModels;
 using System;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace DevOps.UI.DesignerViewModels
+namespace DevOps.Plugin.UI.DesignerViewModels
 {
     /// <summary>
     /// Sample data for the XAML designer
