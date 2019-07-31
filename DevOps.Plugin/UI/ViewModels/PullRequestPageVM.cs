@@ -139,7 +139,15 @@ namespace DevOps.Plugin.UI.ViewModels
 
             using (this.Window.ProgressBar.Begin(this.cancellationTokenSource.Cancel, "Getting projects"))
             {
-                IPagedList<TeamProjectReference> projects = await this.accountClient.GetProjectsAsync(this.cancellationTokenSource.Token);
+                IEnumerable<TeamProjectReference> projects = Array.Empty<TeamProjectReference>();
+                try
+                {
+                    projects = await this.accountClient.GetProjectsAsync(this.cancellationTokenSource.Token);
+                }
+                catch (Exception ex)
+                {
+                    this.Window.InfoBar.SetError(ex);
+                }
 
                 this.projects.Clear();
 
@@ -167,8 +175,15 @@ namespace DevOps.Plugin.UI.ViewModels
                         Status = PullRequestStatus.Active,
                     };
 
-                    Tuple<Uri, List<GitPullRequest>> pullRequests = await this.accountClient.GetPullRequests(project.Name, search, this.cancellationTokenSource.Token);
-                    this.UpdatePullRequests(project, pullRequests.Item1, pullRequests.Item2);
+                    try
+                    {
+                        Tuple<Uri, List<GitPullRequest>> pullRequests = await this.accountClient.GetPullRequests(project.Name, search, this.cancellationTokenSource.Token);
+                        this.UpdatePullRequests(project, pullRequests.Item1, pullRequests.Item2);
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Window.InfoBar.SetError(ex);
+                    }
                 }
             }
         }
