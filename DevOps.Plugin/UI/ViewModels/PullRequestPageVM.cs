@@ -3,12 +3,12 @@ using DevOps.Plugin.Utility;
 using DevPrompt.Api;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
-using Microsoft.VisualStudio.Services.WebApi;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -50,7 +50,13 @@ namespace DevOps.Plugin.UI.ViewModels
 
             this.avatars = new Dictionary<Uri, ImageSource>();
             this.pendingAvatars = new Dictionary<Uri, List<IAvatarSite>>();
-            this.avatarHttpClient = new HttpClient();
+
+            // Cookie container is used so we can get caching on avatar images
+            CookieContainer cookies = new CookieContainer();
+            HttpClientHandler handler = new HttpClientHandler();
+            handler.CookieContainer = cookies;
+
+            this.avatarHttpClient = new HttpClient(handler);
             this.avatarHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userContext.AuthenticationResult.AccessToken);
             this.avatarHttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/png"));
         }

@@ -10,6 +10,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("DevOps.Plugin")]
 [assembly: AssemblyTitle("DevOps.Plugin")]
 [assembly: AssemblyTrademark("")]
-[assembly: AssemblyVersion("1.0.3.0")]
+[assembly: AssemblyVersion("1.0.4.0")]
 [assembly: ComVisible(false)]
 [assembly: NeutralResourcesLanguage("en", UltimateResourceFallbackLocation.MainAssembly)]
