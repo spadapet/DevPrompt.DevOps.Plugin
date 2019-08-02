@@ -71,6 +71,7 @@
     <Compile Include="UI\ViewModels\PullRequestVM.cs" />
     <Compile Include="Utility\AzureDevOpsClient.cs" />
     <Compile Include="Utility\AzureDevOpsUserContext.cs" />
+    <Compile Include="Utility\DelegateDisposable.cs" />
     <Compile Include="Utility\NegateBoolConverter.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -90,21 +91,16 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DevPrompt.Api">
-      <Version>1.5.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.TeamFoundationServer.Client">
-      <Version>16.143.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Services.Client">
-      <Version>16.143.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient">
-      <Version>16.143.2</Version>
-    </PackageReference>
-    <PackageReference Include="System.Composition.AttributedModel">
-      <Version>1.2.0</Version>
-    </PackageReference>
+    <PackageReference Include="DevPrompt.Api" Version="1.5.0" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.143.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.143.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="16.143.2" />
+    <PackageReference Include="System.Composition.AttributedModel" Version="1.2.0" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(LocalAppData)\DevPrompt\DevPrompt.exe</StartProgram>
+    <StartArguments>/plugin "$(TargetPath)"</StartArguments>
+  </PropertyGroup>
 </Project>

@@ -97,6 +97,33 @@ namespace DevOps.Plugin {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Getting avatar image.
+        /// </summary>
+        internal static string PullRequests_BusyAvatar {
+            get {
+                return ResourceManager.GetString("PullRequests.BusyAvatar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Getting projects.
+        /// </summary>
+        internal static string PullRequests_BusyProjects {
+            get {
+                return ResourceManager.GetString("PullRequests.BusyProjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Getting pull requests.
+        /// </summary>
+        internal static string PullRequests_BusyPRs {
+            get {
+                return ResourceManager.GetString("PullRequests.BusyPRs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pull Requests.
         /// </summary>
         internal static string PullRequestsTabName {

@@ -129,6 +129,15 @@
   <data name="PullRequestDashboardMenuName" xml:space="preserve">
     <value>Pull request dashboard</value>
   </data>
+  <data name="PullRequests.BusyAvatar" xml:space="preserve">
+    <value>Getting avatar image</value>
+  </data>
+  <data name="PullRequests.BusyProjects" xml:space="preserve">
+    <value>Getting projects</value>
+  </data>
+  <data name="PullRequests.BusyPRs" xml:space="preserve">
+    <value>Getting pull requests</value>
+  </data>
   <data name="PullRequestsTabName" xml:space="preserve">
     <value>Pull Requests</value>
   </data>

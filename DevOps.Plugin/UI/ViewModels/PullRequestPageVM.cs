@@ -28,20 +28,17 @@ namespace DevOps.Plugin.UI.ViewModels
         private AccountVM currentAccount;
         private ProjectReferenceVM currentProject;
         private AzureDevOpsUserContext devopsUserContext;
+        private event EventHandler unloaded;
 
         // Avatars
         private Dictionary<Uri, ImageSource> avatars;
         private Dictionary<Uri, List<IAvatarSite>> pendingAvatars;
         private HttpClient avatarHttpClient;
 
-        private CancellationTokenSource cancellationTokenSource;
-        private bool disposed;
-
         public PullRequestPageVM(PullRequestTab tab, AzureDevOpsUserContext userContext)
         {
             this.devopsUserContext = userContext;
             this.Tab = tab;
-            this.cancellationTokenSource = new CancellationTokenSource();
             this.accounts = new ObservableCollection<AccountVM>(userContext.Accounts.OrderBy(a => a.AccountName).Select(a => new AccountVM(a)));
             this.projects = new ObservableCollection<ProjectReferenceVM>();
             this.pullRequests = new ObservableCollection<PullRequestVM>();
@@ -63,9 +60,10 @@ namespace DevOps.Plugin.UI.ViewModels
 
         public void Dispose()
         {
-            this.disposed = true;
+            this.accountClient?.Dispose();
+            this.accountClient = null;
 
-            this.Cancel();
+            this.avatarHttpClient.CancelPendingRequests();
             this.avatarHttpClient.Dispose();
         }
 
@@ -82,26 +80,7 @@ namespace DevOps.Plugin.UI.ViewModels
 
         public void OnUnloaded()
         {
-            if (!this.disposed)
-            {
-                this.Cancel();
-            }
-        }
-
-        private void Cancel()
-        {
-            this.cancellationTokenSource.Cancel();
-            this.cancellationTokenSource.Dispose();
-
-            this.accountClient?.Dispose();
-            this.accountClient = null;
-
-            this.avatarHttpClient.CancelPendingRequests();
-
-            if (!this.disposed)
-            {
-                this.cancellationTokenSource = new CancellationTokenSource();
-            }
+            this.unloaded?.Invoke(this, EventArgs.Empty);
         }
 
         public AccountVM CurrentAccount
@@ -143,12 +122,13 @@ namespace DevOps.Plugin.UI.ViewModels
 
             this.accountClient = new AzureDevOpsClient(account.Account.AccountUri, this.devopsUserContext);
 
-            using (this.Window.ProgressBar.Begin(this.cancellationTokenSource.Cancel, "Getting projects"))
+            using (this.BeginBusy(out CancellationTokenSource cancelSource))
+            using (this.Window.ProgressBar.Begin(cancelSource.Cancel, Resources.PullRequests_BusyProjects))
             {
                 IEnumerable<TeamProjectReference> projects = Array.Empty<TeamProjectReference>();
                 try
                 {
-                    projects = await this.accountClient.GetProjectsAsync(this.cancellationTokenSource.Token);
+                    projects = await this.accountClient.GetProjectsAsync(cancelSource.Token);
                 }
                 catch (Exception ex)
                 {
@@ -174,7 +154,8 @@ namespace DevOps.Plugin.UI.ViewModels
             }
             else if (this.accountClient != null)
             {
-                using (this.Window.ProgressBar.Begin(this.cancellationTokenSource.Cancel, "Getting pull requests"))
+                using (this.BeginBusy(out CancellationTokenSource cancelSource))
+                using (this.Window.ProgressBar.Begin(cancelSource.Cancel, Resources.PullRequests_BusyPRs))
                 {
                     GitPullRequestSearchCriteria search = new GitPullRequestSearchCriteria()
                     {
@@ -183,7 +164,7 @@ namespace DevOps.Plugin.UI.ViewModels
 
                     try
                     {
-                        Tuple<Uri, List<GitPullRequest>> pullRequests = await this.accountClient.GetPullRequests(project.Name, search, this.cancellationTokenSource.Token);
+                        Tuple<Uri, List<GitPullRequest>> pullRequests = await this.accountClient.GetPullRequests(project.Name, search, cancelSource.Token);
                         this.UpdatePullRequests(project, pullRequests.Item1, pullRequests.Item2);
                     }
                     catch (Exception ex)
@@ -248,18 +229,22 @@ namespace DevOps.Plugin.UI.ViewModels
 
                 try
                 {
-                    HttpResponseMessage response = await this.avatarHttpClient.GetAsync(uri, HttpCompletionOption.ResponseContentRead, this.cancellationTokenSource.Token);
-                    response = response.EnsureSuccessStatusCode();
+                    using (this.BeginBusy(out CancellationTokenSource cancelSource))
+                    using (this.Window.ProgressBar.Begin(cancelSource.Cancel, Resources.PullRequests_BusyAvatar))
+                    {
+                        HttpResponseMessage response = await this.avatarHttpClient.GetAsync(uri, HttpCompletionOption.ResponseContentRead, cancelSource.Token);
+                        response = response.EnsureSuccessStatusCode();
 
-                    Stream stream = await response.Content.ReadAsStreamAsync();
-                    BitmapImage bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.UriSource = uri;
-                    bitmap.StreamSource = stream;
-                    bitmap.EndInit();
+                        Stream stream = await response.Content.ReadAsStreamAsync();
+                        BitmapImage bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.UriSource = uri;
+                        bitmap.StreamSource = stream;
+                        bitmap.EndInit();
 
-                    image = bitmap;
-                    this.avatars[uri] = image;
+                        image = bitmap;
+                        this.avatars[uri] = image;
+                    }
                 }
                 catch
                 {
@@ -276,6 +261,21 @@ namespace DevOps.Plugin.UI.ViewModels
                     }
                 }
             }
+        }
+
+        private IDisposable BeginBusy(out CancellationTokenSource cancelSource)
+        {
+            CancellationTokenSource myCancelSource = new CancellationTokenSource();
+            cancelSource = myCancelSource;
+
+            EventHandler onUnloaded = (s, a) => myCancelSource.Cancel();
+            this.unloaded += onUnloaded;
+
+            return new DelegateDisposable(() =>
+            {
+                this.unloaded -= onUnloaded;
+                myCancelSource.Dispose();
+            });
         }
     }
 }
