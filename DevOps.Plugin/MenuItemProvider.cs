@@ -29,19 +29,19 @@ namespace DevOps.Plugin
         private void OnPullRequestDashboard(IWindow window)
         {
             // Adds a new tab or activates and existing tab in the default process workspace
-            if (window.FindWorkspace(Constants.ProcessWorkspaceId) is IWorkspaceVM workspaceVM && workspaceVM.Workspace is ITabWorkspace workspace)
+            if (window.FindWorkspace(Constants.ProcessWorkspaceId) is IWorkspaceHolder workspaceHolder && workspaceHolder.Workspace is ITabWorkspace workspace)
             {
-                window.ActiveWorkspace = workspaceVM;
+                window.ActiveWorkspace = workspaceHolder;
 
-                if (workspace.Tabs.FirstOrDefault(t => t.Id == typeof(PullRequestTab).GUID) is ITabVM tabVM)
+                if (workspace.Tabs.FirstOrDefault(t => t.Id == typeof(PullRequestTab).GUID) is ITabHolder tabHolder)
                 {
                     // The tab was already open, make sure it's shown
-                    workspace.ActiveTab = tabVM;
+                    workspace.ActiveTab = tabHolder;
                 }
                 else
                 {
                     ITab tab = new PullRequestTab(window, workspace);
-                    workspace.AddTab(new TabVM(window, workspace, tab), activate: true);
+                    workspace.AddTab(tab, activate: true);
                 }
             }
         }

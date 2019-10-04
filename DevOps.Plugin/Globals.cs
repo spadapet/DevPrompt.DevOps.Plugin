@@ -12,13 +12,10 @@ namespace DevOps.Plugin
     internal class Globals : IAppListener, IDisposable
     {
         public static Globals Instance { get; private set; }
-        public IHttpClient HttpClient { get; }
 
-        [ImportingConstructor]
-        public Globals(IHttpClient httpClient)
+        public Globals()
         {
             Globals.Instance = this;
-            this.HttpClient = httpClient;
         }
 
         public void Dispose()

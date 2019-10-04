@@ -1,6 +1,7 @@
 ﻿using DevOps.Plugin.UI;
 using DevPrompt.Api;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
@@ -12,13 +13,11 @@ namespace DevOps.Plugin
     internal sealed class PullRequestTab : PropertyNotifier, ITab, IDisposable
     {
         public IWindow Window { get; }
-        public IWorkspace Workspace { get; }
         private UIElement viewElement;
 
         public PullRequestTab(IWindow window, IWorkspace workspace)
         {
             this.Window = window;
-            this.Workspace = workspace;
         }
 
         public void Dispose()
@@ -26,10 +25,12 @@ namespace DevOps.Plugin
             this.ViewElement = null;
         }
 
-        public Guid Id => this.GetType().GUID;
-        public string Name => Resources.PullRequestsTabName;
-        public string Tooltip => string.Empty;
-        public string Title => this.Name;
+        Guid ITab.Id => this.GetType().GUID;
+        string ITab.Name => Resources.PullRequestsTabName;
+        string ITab.Title => Resources.PullRequestsTabName;
+        string ITab.Tooltip => string.Empty;
+        ITabSnapshot ITab.Snapshot => null;
+        IEnumerable<FrameworkElement> ITab.ContextMenuItems => null;
 
         public UIElement ViewElement
         {
@@ -79,15 +80,5 @@ namespace DevOps.Plugin
         {
             return true;
         }
-
-        // Doesn't save state (yet)
-        ITabSnapshot ITab.Snapshot => null;
-
-        // Hide some unrelated context menu items
-        ICommand ITab.CloneCommand => null;
-        ICommand ITab.DetachCommand => null;
-        ICommand ITab.DefaultsCommand => null;
-        ICommand ITab.PropertiesCommand => null;
-        ICommand ITab.SetTabNameCommand => null;
     }
 }

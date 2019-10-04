@@ -105,7 +105,7 @@ namespace DevOps.Plugin.UI.ViewModels
         {
             if (p is Uri uri)
             {
-                this.window.RunExternalProcess(uri.ToString());
+                this.window.App.RunExternalProcess(uri.ToString());
             }
         });
     }
