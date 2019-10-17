@@ -93,11 +93,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DevPrompt.Api" Version="1.6.0" />
-    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.143.2" />
-    <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.143.2" />
-    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="16.143.2" />
-    <PackageReference Include="System.Composition.AttributedModel" Version="1.2.0" />
+    <PackageReference Include="DevPrompt.Api" Version="1.7.2" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.153.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.153.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="16.153.0" />
+    <PackageReference Include="System.Composition.AttributedModel" Version="1.3.0" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

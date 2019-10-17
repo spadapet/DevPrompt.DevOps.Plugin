@@ -2,17 +2,21 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace DevOps.Plugin
 {
     /// <summary>
     /// Adds custom menu items to the main window
     /// </summary>
-    [Export(typeof(IMenuItemProvider))]
-    public class MenuItemProvider : IMenuItemProvider
+    [Export(typeof(ICommandProvider))]
+    public class MenuItemProvider : ICommandProvider
     {
-        IEnumerable<MenuItem> IMenuItemProvider.GetMenuItems(MenuType menu, IWindow window)
+        IEnumerable<KeyBinding> ICommandProvider.GetKeyBindings(IWindow window) => Enumerable.Empty<KeyBinding>();
+
+        IEnumerable<FrameworkElement> ICommandProvider.GetMenuItems(MenuType menu, IWindow window)
         {
             switch (menu)
             {

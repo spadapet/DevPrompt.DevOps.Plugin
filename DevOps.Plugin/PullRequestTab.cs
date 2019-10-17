@@ -80,5 +80,17 @@ namespace DevOps.Plugin
         {
             return true;
         }
+
+        void ITab.OnSetTabName()
+        {
+        }
+
+        void ITab.OnClone()
+        {
+        }
+
+        void ITab.OnDetach()
+        {
+        }
     }
 }
