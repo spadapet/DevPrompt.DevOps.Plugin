@@ -30,9 +30,11 @@ namespace DevOps.Plugin.Utility
             AuthenticationContext authCtx = new AuthenticationContext(aadAuthority);
             UserCredential userCredential = new UserCredential();
 
-            AzureDevOpsUserContext result = new AzureDevOpsUserContext();
-            result.AuthenticationResult = await authCtx.AcquireTokenAsync(aadResource, aadClientId, userCredential);
-            result.VssAadCredential = new VssAadCredential(new VssAadToken(authCtx, userCredential));
+            AzureDevOpsUserContext result = new AzureDevOpsUserContext
+            {
+                AuthenticationResult = await authCtx.AcquireTokenAsync(aadResource, aadClientId, userCredential),
+                VssAadCredential = new VssAadCredential(new VssAadToken(authCtx, userCredential))
+            };
 
             using (VssConnection connection = new VssConnection(new Uri("https://app.vssps.visualstudio.com"), result.VssAadCredential))
             {

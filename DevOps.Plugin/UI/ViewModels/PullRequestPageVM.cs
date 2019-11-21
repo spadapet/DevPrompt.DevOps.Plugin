@@ -21,19 +21,19 @@ namespace DevOps.Plugin.UI.ViewModels
     {
         public PullRequestTab Tab { get; }
 
-        private ObservableCollection<AccountVM> accounts;
-        private ObservableCollection<ProjectReferenceVM> projects;
-        private ObservableCollection<PullRequestVM> pullRequests;
+        private readonly ObservableCollection<AccountVM> accounts;
+        private readonly ObservableCollection<ProjectReferenceVM> projects;
+        private readonly ObservableCollection<PullRequestVM> pullRequests;
+        private readonly AzureDevOpsUserContext devopsUserContext;
         private AzureDevOpsClient accountClient;
         private AccountVM currentAccount;
         private ProjectReferenceVM currentProject;
-        private AzureDevOpsUserContext devopsUserContext;
-        private event EventHandler unloaded;
+        private event EventHandler Unloaded;
 
         // Avatars
-        private Dictionary<Uri, ImageSource> avatars;
-        private Dictionary<Uri, List<IAvatarSite>> pendingAvatars;
-        private HttpClient avatarHttpClient;
+        private readonly Dictionary<Uri, ImageSource> avatars;
+        private readonly Dictionary<Uri, List<IAvatarSite>> pendingAvatars;
+        private readonly HttpClient avatarHttpClient;
 
         public PullRequestPageVM(PullRequestTab tab, AzureDevOpsUserContext userContext)
         {
@@ -50,8 +50,10 @@ namespace DevOps.Plugin.UI.ViewModels
 
             // Cookie container is used so we can get caching on avatar images
             CookieContainer cookies = new CookieContainer();
-            HttpClientHandler handler = new HttpClientHandler();
-            handler.CookieContainer = cookies;
+            HttpClientHandler handler = new HttpClientHandler
+            {
+                CookieContainer = cookies
+            };
 
             this.avatarHttpClient = new HttpClient(handler);
             this.avatarHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userContext.AuthenticationResult.AccessToken);
@@ -80,7 +82,7 @@ namespace DevOps.Plugin.UI.ViewModels
 
         public void OnUnloaded()
         {
-            this.unloaded?.Invoke(this, EventArgs.Empty);
+            this.Unloaded?.Invoke(this, EventArgs.Empty);
         }
 
         public AccountVM CurrentAccount
@@ -165,7 +167,7 @@ namespace DevOps.Plugin.UI.ViewModels
                     try
                     {
                         Tuple<Uri, List<GitPullRequest>> pullRequests = await this.accountClient.GetPullRequests(project.Name, search, cancelSource.Token);
-                        this.UpdatePullRequests(project, pullRequests.Item1, pullRequests.Item2);
+                        this.UpdatePullRequests(pullRequests.Item1, pullRequests.Item2);
                     }
                     catch (Exception ex)
                     {
@@ -186,7 +188,7 @@ namespace DevOps.Plugin.UI.ViewModels
             }
         }
 
-        private void UpdatePullRequests(TeamProjectReference project, Uri baseAddress, IReadOnlyList<GitPullRequest> newPullRequests)
+        private void UpdatePullRequests(Uri baseAddress, IReadOnlyList<GitPullRequest> newPullRequests)
         {
             this.ClearFailedAvatarDownloads();
 
@@ -268,12 +270,12 @@ namespace DevOps.Plugin.UI.ViewModels
             CancellationTokenSource myCancelSource = new CancellationTokenSource();
             cancelSource = myCancelSource;
 
-            EventHandler onUnloaded = (s, a) => myCancelSource.Cancel();
-            this.unloaded += onUnloaded;
+            void onUnloaded(object s, EventArgs a) => myCancelSource.Cancel();
+            this.Unloaded += onUnloaded;
 
             return new DelegateDisposable(() =>
             {
-                this.unloaded -= onUnloaded;
+                this.Unloaded -= onUnloaded;
                 myCancelSource.Dispose();
             });
         }

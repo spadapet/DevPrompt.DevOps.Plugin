@@ -44,7 +44,7 @@ namespace DevOps.Plugin
                 }
                 else
                 {
-                    ITab tab = new PullRequestTab(window, workspace);
+                    ITab tab = new PullRequestTab(window);
                     workspace.AddTab(tab, activate: true);
                 }
             }

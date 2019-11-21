@@ -15,7 +15,7 @@ namespace DevOps.Plugin
         public IWindow Window { get; }
         private UIElement viewElement;
 
-        public PullRequestTab(IWindow window, IWorkspace workspace)
+        public PullRequestTab(IWindow window)
         {
             this.Window = window;
         }

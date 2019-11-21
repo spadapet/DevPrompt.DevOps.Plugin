@@ -11,11 +11,11 @@ namespace DevOps.Plugin.UI.ViewModels
 {
     internal class PullRequestVM : PropertyNotifier, IPullRequestVM, IAvatarSite
     {
+        private readonly IAvatarProvider avatarProvider;
+        private readonly IWindow window;
         private Uri baseUri;
         private GitPullRequest pr;
-        private IAvatarProvider avatarProvider;
         private ImageSource avatarImageSource;
-        private IWindow window;
 
         public PullRequestVM(Uri baseUri, GitPullRequest pr, IAvatarProvider avatarProvider, IWindow window)
         {

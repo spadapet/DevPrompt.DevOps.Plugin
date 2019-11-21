@@ -7,7 +7,7 @@ namespace DevOps.Plugin.Utility
     /// </summary>
     internal class DelegateDisposable : IDisposable
     {
-        private Action disposeAction;
+        private readonly Action disposeAction;
 
         public DelegateDisposable(Action disposeAction)
         {
