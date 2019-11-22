@@ -6,6 +6,7 @@ using Microsoft.TeamFoundation.SourceControl.WebApi;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -118,6 +119,7 @@ namespace DevOps.Plugin.UI.ViewModels
             }
         }
 
+        [SuppressMessage("Code Quality", "IDE0067:Dispose objects before losing scope", Justification = "cancelSource is disposed")]
         private async void UpdateProjects(AccountVM account)
         {
             this.CurrentProject = null;
@@ -148,6 +150,7 @@ namespace DevOps.Plugin.UI.ViewModels
             }
         }
 
+        [SuppressMessage("Code Quality", "IDE0067:Dispose objects before losing scope", Justification = "cancelSource is disposed")]
         private async void UpdatePullRequests(TeamProjectReference project)
         {
             if (project == null)
@@ -211,6 +214,7 @@ namespace DevOps.Plugin.UI.ViewModels
             }
         }
 
+        [SuppressMessage("Code Quality", "IDE0067:Dispose objects before losing scope", Justification = "cancelSource is disposed")]
         async void IAvatarProvider.ProvideAvatar(Uri uri, IAvatarSite site)
         {
             if (this.avatars.TryGetValue(uri, out ImageSource image))
@@ -265,6 +269,7 @@ namespace DevOps.Plugin.UI.ViewModels
             }
         }
 
+        [SuppressMessage("Style", "IDE0009:Member access should be qualified.", Justification = "false positive for onUnloaded")]
         private IDisposable BeginBusy(out CancellationTokenSource cancelSource)
         {
             CancellationTokenSource myCancelSource = new CancellationTokenSource();
