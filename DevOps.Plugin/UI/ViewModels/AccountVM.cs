@@ -1,4 +1,4 @@
-﻿using DevPrompt.Api;
+﻿using DevPrompt.Api.Utility;
 using Microsoft.VisualStudio.Services.Account;
 
 namespace DevOps.Plugin.UI.ViewModels

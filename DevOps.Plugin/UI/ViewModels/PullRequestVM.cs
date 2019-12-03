@@ -1,5 +1,6 @@
 ﻿using DevOps.Avatars;
 using DevPrompt.Api;
+using DevPrompt.Api.Utility;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
 using System;
@@ -105,7 +106,7 @@ namespace DevOps.Plugin.UI.ViewModels
         {
             if (p is Uri uri)
             {
-                this.window.App.RunExternalProcess(uri.ToString());
+                this.window.App.AppProcesses.RunExternalProcess(uri.ToString());
             }
         });
     }

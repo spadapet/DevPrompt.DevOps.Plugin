@@ -1,4 +1,4 @@
-﻿using DevPrompt.Api;
+﻿using DevPrompt.Api.Utility;
 using Microsoft.TeamFoundation.Core.WebApi;
 
 namespace DevOps.Plugin.UI.ViewModels

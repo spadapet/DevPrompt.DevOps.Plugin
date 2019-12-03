@@ -1,6 +1,7 @@
 ﻿using DevOps.Avatars;
 using DevOps.Plugin.Utility;
 using DevPrompt.Api;
+using DevPrompt.Api.Utility;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using System;

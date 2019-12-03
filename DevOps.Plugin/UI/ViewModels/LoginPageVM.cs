@@ -1,4 +1,5 @@
 ﻿using DevPrompt.Api;
+using DevPrompt.Api.Utility;
 
 namespace DevOps.Plugin.UI.ViewModels
 {

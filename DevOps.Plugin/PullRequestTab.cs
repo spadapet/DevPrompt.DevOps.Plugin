@@ -1,5 +1,6 @@
 ﻿using DevOps.Plugin.UI;
 using DevPrompt.Api;
+using DevPrompt.Api.Utility;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
